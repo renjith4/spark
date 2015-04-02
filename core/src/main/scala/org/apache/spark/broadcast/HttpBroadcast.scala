@@ -151,15 +151,16 @@ private[broadcast] object HttpBroadcast extends Logging {
   }
 
   private def createServer(conf: SparkConf) {
-    broadcastDir = Utils.createTempDir(Utils.getLocalDir(conf))
+    broadcastDir = Utils.createTempDir(Utils.getLocalDir(conf), "broadcast")
     val broadcastPort = conf.getInt("spark.broadcast.port", 0)
-    server = new HttpServer(broadcastDir, securityManager, broadcastPort, "HTTP broadcast server")
+    server =
+      new HttpServer(conf, broadcastDir, securityManager, broadcastPort, "HTTP broadcast server")
     server.start()
     serverUri = server.uri
     logInfo("Broadcast server started at " + serverUri)
   }
 
-  def getFile(id: Long) = new File(broadcastDir, BroadcastBlockId(id).name)
+  def getFile(id: Long): File = new File(broadcastDir, BroadcastBlockId(id).name)
 
   private def write(id: Long, value: Any) {
     val file = getFile(id)
@@ -198,6 +199,7 @@ private[broadcast] object HttpBroadcast extends Logging {
       uc = new URL(url).openConnection()
       uc.setConnectTimeout(httpReadTimeout)
     }
+    Utils.setupSecureURLConnection(uc, securityManager)
 
     val in = {
       uc.setReadTimeout(httpReadTimeout)
@@ -220,7 +222,7 @@ private[broadcast] object HttpBroadcast extends Logging {
    * If removeFromDriver is true, also remove these persisted blocks on the driver
    * and delete the associated broadcast file.
    */
-  def unpersist(id: Long, removeFromDriver: Boolean, blocking: Boolean) = synchronized {
+  def unpersist(id: Long, removeFromDriver: Boolean, blocking: Boolean): Unit = synchronized {
     SparkEnv.get.blockManager.master.removeBroadcast(id, removeFromDriver, blocking)
     if (removeFromDriver) {
       val file = getFile(id)
