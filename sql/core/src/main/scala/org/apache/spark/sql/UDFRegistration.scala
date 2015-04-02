@@ -36,6 +36,7 @@ import org.apache.spark.sql.types.DataType
  */
 class UDFRegistration private[sql] (sqlContext: SQLContext) extends Logging {
 
+
   private val functionRegistry = sqlContext.functionRegistry
 
   protected[sql] def registerPython(
