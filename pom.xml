@@ -1026,6 +1026,11 @@
         <scope>${parquet.deps.scope}</scope>
       </dependency>
       <dependency>
+        <groupId>org.apache.thrift</groupId>
+        <artifactId>libthrift</artifactId>
+        <version>0.9.0</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.flume</groupId>
         <artifactId>flume-ng-core</artifactId>
         <version>${flume.version}</version>
